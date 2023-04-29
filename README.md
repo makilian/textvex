@@ -16,7 +16,7 @@ TextVex has two modes: `initialize` and `query`.
 To initialize the database with your iMessage history, run:
 
 ```
-$ python textvex.py initialize
+$ python textvex.py init
 ```
 
 This command will first extract your iMessage texts and save them to a file called response.json. Then, it will vectorize your text history and store it in a ChromaDB database.

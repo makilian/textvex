@@ -117,7 +117,7 @@ def extract_texts():
 
 def main():
     parser = argparse.ArgumentParser(description="Initialize or search the database.")
-    parser.add_argument("mode", choices=["initialize", "query"], help="Choose 'initialize' to populate the database or 'query' to query it.")
+    parser.add_argument("mode", choices=["init", "query"], help="Choose 'init' to populate the database or 'query' to query it.")
     parser.add_argument("-q", "--query", help="The query to search in the database.")
 
     args = parser.parse_args()
