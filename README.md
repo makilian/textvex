@@ -1,6 +1,6 @@
 # TextVex
 
-TextVex is a Python script that allows you to search your iMessage history for specific concepts using ChromaDB.
+TextVex is a Python script that allows you to search your iMessage history for specific concepts using vector embeddings via ChromaDB.
 
 ## Installation
 
