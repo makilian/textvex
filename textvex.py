@@ -26,10 +26,10 @@ def initialize_database(collection):
         
     print("textvex database initialized!")
 
-def query_database(query, collection):
+def query_database(query, collection, quantity):
     results = collection.query(
         query_texts=[query],
-        n_results=20
+        n_results=quantity
     )
 
     print("\n\nSearching your text history for:", query, "\n")
@@ -134,7 +134,7 @@ def main():
         initialize_database(collection)
     elif args.mode == "query":
         if args.query:
-            query_database(args.query, collection)
+            query_database(args.query, collection, 20)
         else:
             print("Please provide a query using the -q or --query flag.")
 

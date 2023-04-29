@@ -9,9 +9,9 @@ TextVex is a Python script that allows you to search your iMessage history for s
 
 ## Usage
 
-TextVex has two modes: `initialize` and `query`.
+TextVex has two modes: `init` and `query`.
 
-### Initialize
+### Init
 
 To initialize the database with your iMessage history, run:
 
@@ -21,14 +21,16 @@ $ python textvex.py init
 
 This command will first extract your iMessage texts and save them to a file called response.json. Then, it will vectorize your text history and store it in a ChromaDB database.
 
-Note: This command may take a while to complete, especially if you have a large iMessage history.
+Note: This command may take a while to complete (45 seconds per 5k of texts), especially if you have a large iMessage history.
 
 ### Query
-To search your iMessage history for a specific concept, run:
+Once initialized, you can search your iMessage history for a specific concept, run:
 
 ```
 $ python textvex.py query -q "your query here"
 ```
+
+Some fun examples I've tried: "profuse apology", "song recommendations", "song links", "dinner spots", "flirty", "angry", "negotiation", etc..
 
 Replace your query here with the concept or text you want to search for in your iMessage history.
 
