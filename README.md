@@ -1,11 +1,11 @@
 # textvex
 
-textvex is a Python script that allows you to search your iMessage history for specific concepts using vector embeddings via ChromaDB.
+textvex is a Python script that allows you to search your iMessage history for specific concepts using vector embeddings via Chroma (all locally).
 
 ## Installation
 
 1. Make sure you have Python 3.6 or later installed on your system.
-2. Install ChromaDB by running `pip install chromadb`.
+2. Install Chroma by running `pip install chromadb`.
 
 ## Usage
 
@@ -19,7 +19,7 @@ To initialize the database with your iMessage history, run:
 $ python textvex.py init
 ```
 
-This command will first extract your iMessage texts and save them to a file called response.json. Then, it will vectorize your text history and store it in a ChromaDB database.
+This command will first extract your iMessage texts and save them to a file called response.json. Then, it will vectorize your text history and store it in a Chroma database. This is all local, no text data leaves your computer!
 
 Note: This command may take a while to complete (45 seconds per 5k of texts), especially if you have a large iMessage history.
 
