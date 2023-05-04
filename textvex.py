@@ -4,6 +4,56 @@ import json
 import argparse
 import os
 import sqlite3
+import vobject
+
+contacts = {}
+
+def clean_number(in_phone):
+    digits_only = ''.join([char for char in in_phone if char.isdigit()])
+
+    if len(digits_only) and digits_only[0] == '1' and len(digits_only) == 11:
+        digits_only = digits_only[1:]
+    return digits_only
+
+def get_contact_name(phone_number):
+    if phone_number:
+        pns = phone_number.split(",")
+        for p in pns:
+            if not '@' in p:
+                p_dig = clean_number(p)
+                if p_dig in contacts:
+                    name = contacts[p_dig]
+                    return name
+                else:
+                    return 'Person'
+            else:
+                if p in contacts:
+                    name = contacts[p]
+                    return name
+                else:
+                    return 'Person'
+    else:
+        return 'Person'
+
+def parse_vcards(vcard_file):
+    with open(vcard_file, "r") as f:
+        vcard_data = f.read()
+
+    vcards = list(vobject.readComponents(vcard_data))
+
+    for vcard in vcards:
+        for i, tel in enumerate(vcard.contents.get('tel', [])):
+            tele = clean_number(tel.value)
+            if hasattr(vcard, "fn"):
+                contacts[tele] = vcard.fn.value
+            else:
+                contacts[tele] = "no fn"
+        for email in vcard.contents.get('email', []):
+            if hasattr(vcard, "fn"):
+                contacts[email.value] = vcard.fn.value
+            else:
+                contacts[email.value] = "no fn"
+            
 
 def initialize_database(collection):
     with open('response.json') as f:
@@ -68,9 +118,11 @@ def extract_texts():
     query = """
     WITH messages_with_prev AS (
         SELECT m.ROWID, m.guid, m.text, m.subject, m.country, m.date, chj.chat_id, m.is_from_me,
-               LAG(m.is_from_me) OVER (PARTITION BY chj.chat_id ORDER BY m.date) AS prev_is_from_me
+               LAG(m.is_from_me) OVER (PARTITION BY chj.chat_id ORDER BY m.date) AS prev_is_from_me,
+               h.id as pn, h.uncanonicalized_id
         FROM message AS m
         JOIN chat_message_join AS chj ON m.ROWID = chj.message_id
+        LEFT JOIN handle AS h ON m.handle_id = h.ROWID
         WHERE LENGTH(m.text) > 0
     ),
     grouped_messages AS (
@@ -79,7 +131,7 @@ def extract_texts():
         FROM messages_with_prev
     ),
     consecutive_messages AS (
-        SELECT chat_id, is_from_me, group_concat(text, '\n') AS joined_text, MIN(date) AS min_date
+        SELECT chat_id, is_from_me, group_concat(text, '\n') AS joined_text, MIN(date) AS min_date, pn AS speaker
         FROM grouped_messages
         GROUP BY chat_id, is_from_me, grp
     ),
@@ -89,7 +141,8 @@ def extract_texts():
     other_consecutive_messages AS (
         SELECT * FROM consecutive_messages WHERE is_from_me = 0
     )
-    SELECT other.joined_text AS prev_text, my.joined_text AS my_text
+    SELECT other.joined_text AS prev_text, my.joined_text AS my_text, other.speaker AS speaker,
+            datetime(other.min_date/1000000000, 'unixepoch', '+31 years') AS other_datetime, datetime(my.min_date/1000000000, 'unixepoch', '+31 years') AS my_datetime
             FROM my_consecutive_messages AS my
     LEFT JOIN other_consecutive_messages AS other ON my.chat_id = other.chat_id AND other.min_date < my.min_date
     WHERE other.min_date = (
@@ -104,11 +157,12 @@ def extract_texts():
     results = cursor.fetchall()
 
     # remove all newlines
-    results = [tuple(map(lambda x: x.replace("\n", " "), row)) for row in results]
+    results = [tuple(map(lambda x: x.replace("\n", " ") if isinstance(x, str) else x, row)) for row in results]
+    results = [(row[0], row[1], get_contact_name(row[2]), row[3], row[4]) for row in results]
 
     with open(output_file, "w+") as f:
         json.dump(
-            [{"text": f"person: {row[0]}\nMe: {row[1]}", "label": 0} for row in results],
+            [{"text": f"{row[3]} {row[2]}: {row[0]}\n {row[4]} Me: {row[1]}", "label": 0} for row in results],
             f,
             indent=4,
         )
@@ -129,7 +183,10 @@ def main():
 
     collection = chroma_client.get_or_create_collection("texts")
 
+
     if args.mode == "init":
+        vcard_file = "./contacts.vcf"  # Replace with the actual path to your vCard file
+        parse_vcards(vcard_file)
         extract_texts()
         initialize_database(collection)
     elif args.mode == "query":

@@ -13,13 +13,15 @@ textvex has two modes: `init` and `query`.
 
 ### Init
 
-To initialize the database with your iMessage history, run:
+First, you need to open your Contacts.app, select all your contacts (Cmd+A), then go to File -> Export -> Export Vcard. Rename the file to contacts.vcf and move the file to the root of your textvex directory.
+
+To initialize the database with your iMessage history and enriched contact data, run:
 
 ```
 $ python textvex.py init
 ```
 
-This command will first extract your iMessage texts and save them to a file called response.json. Then, it will vectorize your text history and store it in a Chroma database. This is all local, no text data leaves your computer!
+This command will first extract your iMessage texts, map numbers to contact names, and save them to a file called response.json. Then, it will vectorize your text history and store it in a Chroma database. This is all local, no text data leaves your computer!
 
 Note: This command may take a while to complete (45 seconds per 5k of texts), especially if you have a large iMessage history.
 
